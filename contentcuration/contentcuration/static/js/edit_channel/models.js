@@ -622,8 +622,9 @@ var ContentNodeCollection = BaseCollection.extend({
         method: 'POST',
         url: window.Urls.duplicate_nodes(),
         data: JSON.stringify(data),
+        dataType: 'json',
         success: function(data) {
-          resolve(State.Store.dispatch('startTask', data));
+          State.Store.dispatch('startTask', data, resolve, reject);
         },
         error: reject,
       });
@@ -644,9 +645,10 @@ var ContentNodeCollection = BaseCollection.extend({
         method: 'POST',
         url: window.Urls.move_nodes(),
         data: JSON.stringify(data),
+        dataType: 'json',
         error: reject,
-        success: function(moved) {
-          resolve(new ContentNodeCollection(JSON.parse(moved)));
+        success: function(data) {
+          State.Store.dispatch('startTask', data, resolve, reject);
         },
       });
     });
@@ -676,9 +678,10 @@ var ContentNodeCollection = BaseCollection.extend({
         method: 'POST',
         url: window.Urls.sync_nodes(),
         data: JSON.stringify(data),
+        dataType: 'json',
         error: reject,
-        success: function(synced) {
-          resolve(new ContentNodeCollection(JSON.parse(synced)));
+        success: function(data) {
+          resolve(State.Store.dispatch('startTask', data));
         },
       });
     });
@@ -738,6 +741,7 @@ var ChannelModel = BaseModel.extend({
     });
   },
   sync_channel: function(options) {
+    const State = require('./state');
     var self = this;
     return new Promise(function(resolve, reject) {
       var data = {
@@ -752,8 +756,9 @@ var ChannelModel = BaseModel.extend({
         method: 'POST',
         url: window.Urls.sync_channel(),
         data: JSON.stringify(data),
+        dataType: 'json',
         success: function(data) {
-          resolve(new ContentNodeCollection(JSON.parse(data)));
+          State.Store.dispatch('startTask', data, resolve, reject);
         },
         error: reject,
       });

@@ -913,7 +913,8 @@ class TaskSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
 
     def get_status(self, task):
-        # If CELERY_TASK_ALWAYS_EAGER is set, attempts to retrieve state will assert, so do a sanity check first.
+        # If CELERY_TASK_ALWAYS_EAGER is set, attempts to retrieve state will assert, so do a sanity
+        # check first.
         if not settings.CELERY_TASK_ALWAYS_EAGER:
             result = app.AsyncResult(task.task_id)
             if result and result.status:
@@ -926,8 +927,12 @@ class TaskSerializer(serializers.ModelSerializer):
         # If CELERY_TASK_ALWAYS_EAGER is set, attempts to retrieve state will assert, so do a sanity check first.
         if not settings.CELERY_TASK_ALWAYS_EAGER:
             result = app.AsyncResult(task.task_id)
-            if task.is_progress_tracking and 'progress' in result.state:
-                metadata['progress'] = result.state['progress']
+
+            # Just flagging this, but this appears to be the correct way to get task metadata,
+            # even though the API is marked as private.
+            meta = result._get_task_meta()
+            if meta and 'result' in meta and meta['result'] and 'progress' in meta['result']:
+                metadata['progress'] = meta['result']['progress']
 
         return metadata
 

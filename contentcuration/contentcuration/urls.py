@@ -40,6 +40,7 @@ import contentcuration.views.public as public_views
 import contentcuration.views.settings as settings_views
 import contentcuration.views.users as registration_views
 import contentcuration.views.zip as zip_views
+from contentcuration.celery import app
 from contentcuration.forms import ForgotPasswordForm
 from contentcuration.forms import LoginForm
 from contentcuration.forms import ResetPasswordForm
@@ -205,6 +206,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         # TODO: Add logic to delete the Celery task using app.control.revoke(). This will require some extensive
         # testing to ensure terminating in-progress tasks will not put the db in an indeterminate state.
+        app.control.revoke(instance.task_id, terminate=True)
         instance.delete()
 
     def get_queryset(self):
@@ -262,12 +264,6 @@ urlpatterns = [
     url(r'^api/remove_bookmark/$', views.remove_bookmark, name='remove_bookmark'),
     url(r'^api/set_channel_priority/$', views.set_channel_priority, name='set_channel_priority'),
     url(r'^api/download_channel_content_csv/(?P<channel_id>[^/]{32})$', views.download_channel_content_csv, name='download_channel_content_csv'),
-]
-
-# Add progress tracking endpoints
-urlpatterns += [
-    url(r'^api/check_progress/(?P<task_id>[^/]+)$', views.check_progress, name='check_progress'),  # TODO: Delete once progress API is done
-    url(r'^api/cancel_task/(?P<task_id>[^/]+)$', views.cancel_task, name='cancel_task'),  # TODO: Delete once progress API is done
 ]
 
 
